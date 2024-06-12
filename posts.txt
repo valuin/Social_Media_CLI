@@ -1,0 +1,8 @@
+P|kastara05|Taqi|This is a random post.|1
+R|fkatwigs|twigs|hi taqi|0
+P|wrath|Ausath|I'm learning C.|39
+P|rigiyoga|Agoy|It's a beautiful day.|74
+P|rakhabuming|Rakha|I love programming.|86
+R|seipent|Val|u get it|0
+P|dandywastaken|Dandy|Hello, world!|41
+R|seipent|Val|helloo dandyy|0
