@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/valtrizt/Desktop/Clang/College/Semester 2/Prak. SDA/Project_UAS",
-      "program": "c:/Users/valtrizt/Desktop/Clang/College/Semester 2/Prak. SDA/Project_UAS/build/Debug/outDebug",
+      "cwd": "c:/Users/valtrizt/Desktop/Clang/College/Semester 2/Prak. SDA/Social_Media_CLI",
+      "program": "c:/Users/valtrizt/Desktop/Clang/College/Semester 2/Prak. SDA/Social_Media_CLI/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
