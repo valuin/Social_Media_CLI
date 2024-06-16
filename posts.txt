@@ -1,11 +1,8 @@
-P|seipent|Val|I HATE C|1|0
-P|seipent|Val|Reposted by Val
-rakhabuming
-I love programming.
-<3 88
-Reposts: 21|0|21
-P|dandywastaken|Dandy|Hello, world!|41|15
-P|rakhabuming|Rakha|I love programming.|89|21
+P|seipent|Val|type shit|1|0
+P|dandywastaken|Dandy|Hello, world!|41|16
+R|seipent|Val|helloo dandy|0|0
+R|seipent|Val|whats up|0|0
+P|rakhabuming|Rakha|I love programming.|89|22
 P|rigiyoga|Agoy|It's a beautiful day.|76|15
 P|wrath|Ausath|I'm learning C.|39|5
 R|neliqot|Hel|GA PEDULI|1|0

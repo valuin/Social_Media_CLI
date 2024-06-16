@@ -27,7 +27,6 @@ typedef struct TreeNode
     struct TreeNode *child;
 } TreeNode;
 
-
 UserProfile *users = NULL;
 TreeNode *posts = NULL;
 
@@ -62,7 +61,6 @@ TreeNode *createPostNode(char *username, char *displayName, char *content)
     newNode->child = NULL;
     return newNode;
 }
-
 
 void addUser(char *username, char *password, char *displayName)
 {
@@ -188,25 +186,31 @@ void loadPosts()
     }
 
     char type, username[MAX_LENGTH], displayName[MAX_LENGTH], content[MAX_CONTENT];
-    int likes, reposts; // Add reposts
+    int likes, reposts;
     TreeNode *currentPost = NULL;
 
-    while (fscanf(file, "%c|%[^|]|%[^|]|%[^|]|%d|%d\n", &type, username, displayName, content, &likes, &reposts) != EOF) // Add reposts
+    // Temporary stack to hold posts in reverse order
+    TreeNode *reverseStack = NULL;
+
+    while (fscanf(file, "%c|%[^|]|%[^|]|%[^|]|%d|%d\n", &type, username, displayName, content, &likes, &reposts) != EOF)
     {
         if (type == 'P')
         {
             TreeNode *newPost = createPostNode(username, displayName, content);
             newPost->likes = likes;
-            newPost->reposts = reposts; // Add reposts
-            newPost->next = posts;
-            posts = newPost;
+            newPost->reposts = reposts;
+
+            // Push the new post onto the reverse stack
+            newPost->next = reverseStack;
+            reverseStack = newPost;
+
             currentPost = newPost;
         }
         else if (type == 'R' && currentPost != NULL)
         {
             TreeNode *newReply = createPostNode(username, displayName, content);
             newReply->likes = likes;
-            newReply->reposts = reposts; // Add reposts
+            newReply->reposts = reposts;
             if (!currentPost->child)
             {
                 currentPost->child = newReply;
@@ -223,9 +227,17 @@ void loadPosts()
         }
     }
 
+    // Pop posts from the reverse stack to maintain original order
+    while (reverseStack)
+    {
+        TreeNode *temp = reverseStack;
+        reverseStack = reverseStack->next;
+        temp->next = posts;
+        posts = temp;
+    }
+
     fclose(file);
 }
-
 
 void addReply(TreeNode *post, char *username, char *displayName, char *content)
 {
@@ -257,12 +269,11 @@ TreeNode *repost(TreeNode *originalPost, char *username, char *displayName)
 {
     originalPost->reposts++; // Increment repost count of the original post
     char repostContent[MAX_CONTENT + MAX_LENGTH];
-    snprintf(repostContent, sizeof(repostContent), "Reposted by %s\n%s\n%s\n<3 %d\nReposts: %d", displayName, originalPost->username, originalPost->content, originalPost->likes, originalPost->reposts);
+    snprintf(repostContent, sizeof(repostContent), "Reposted by %s\n%s\n%s\n<3 %d | Reposts: %d", displayName, originalPost->username, originalPost->content, originalPost->likes, originalPost->reposts);
     TreeNode *repostNode = addPost(username, displayName, repostContent);
     repostNode->reposts = originalPost->reposts; // Sync the repost count
     return repostNode;
 }
-
 
 void displayPosts(TreeNode *post, int level)
 {
@@ -288,13 +299,49 @@ void displayPosts(TreeNode *post, int level)
 
         if (post->child)
         {
-            displayPosts(post->child, level + 1);
+            TreeNode *reply = post->child;
+            int replyIndex = 1;
+            while (reply)
+            {
+                for (int i = 0; i < level + 1; ++i)
+                    printf("  ");
+                printf("[%d] ", replyIndex);
+                if (reply->child)
+                {
+                    printf("|------> %s\n", reply->username);
+                    for (int i = 0; i < level + 1; ++i)
+                        printf("  ");
+                    printf("    |------ %s\n", reply->content);
+                    for (int i = 0; i < level + 1; ++i)
+                        printf("  ");
+                    printf("    |------ <3 %d | Reposts %d\n", reply->likes, reply->reposts);
+                }
+                else
+                {
+                    printf("------> %s\n", reply->username);
+                    for (int i = 0; i < level + 1; ++i)
+                        printf("  ");
+                    printf("------- %s\n", reply->content);
+                    for (int i = 0; i < level + 1; ++i)
+                        printf("  ");
+                    printf("------- <3 %d | Reposts %d\n", reply->likes, reply->reposts);
+                }
+                printf("\n");
+
+                // If the reply has its own replies, display them
+                if (reply->child)
+                {
+                    displayPosts(reply->child, level + 2);
+                }
+
+                reply = reply->next;
+                replyIndex++;
+            }
         }
 
         post = post->next;
     }
 }
-
 
 void displayTimeline(TreeNode *currentPost)
 {
@@ -328,7 +375,6 @@ void displayUserPosts(char *username)
     getch(); // Wait for a key press
     displayTimeline(posts);
 }
-
 
 void handleReplyDashboard(TreeNode *reply, char *username, char *displayName)
 {
@@ -486,7 +532,6 @@ void handleUserDashboard(char *username, char *displayName)
         }
     }
 }
-
 
 int main()
 {
