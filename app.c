@@ -327,7 +327,9 @@ void displayUserPosts(char *username) {
     while (currentPost) {
         if (strcmp(currentPost->username, username) == 0) {
             printf("%s\n", currentPost->content);
-            printf("<3 %d\n", currentPost->likes);
+            if (strstr(currentPost->content, "Reposted by") != currentPost->content) {
+                printf("<3 %d\n", currentPost->likes);
+            }
             printf("\n");
         }
         currentPost = currentPost->next;

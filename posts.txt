@@ -1,12 +1,13 @@
+P|seipent|Val|LMFAOOOO|0
+P|dandywastaken|Dandy|Hello, world!|41
+P|rakhabuming|Rakha|I love programming.|88
+P|rigiyoga|Agoy|It's a beautiful day.|76
+P|wrath|Ausath|I'm learning C.|39
+R|neliqot|Hel|GA PEDULI|1
+R|seipent|Val|goat shit|0
+P|kastara05|Taqi|This is a random post.|2
+R|seipent|Val|helloo|0
 P|seipent|Val|Reposted by Val
 rigiyoga
 It's a beautiful day.
 <3 76|0
-P|kastara05|Taqi|This is a random post.|2
-R|seipent|Val|helloo|0
-P|wrath|Ausath|I'm learning C.|39
-R|neliqot|Hel|GA PEDULI|1
-R|seipent|Val|goat shit|0
-P|rigiyoga|Agoy|It's a beautiful day.|76
-P|rakhabuming|Rakha|I love programming.|88
-P|dandywastaken|Dandy|Hello, world!|41
