@@ -329,13 +329,52 @@ void displayUserPosts(char *username)
     displayTimeline(posts);
 }
 
+
+void handleReplyDashboard(TreeNode *reply, char *username, char *displayName)
+{
+    int choice;
+    char content[MAX_CONTENT];
+
+    while (1)
+    {
+        system("cls");
+        printf("\n=== Reply ===\n");
+        printf("%s\n", reply->username);
+        printf("%s\n", reply->content);
+        printf("<3 %d\n", reply->likes);
+        printf("\n1. Add Nested Reply\n");
+        printf("2. Like Reply\n");
+        printf("3. Back to Post\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar(); // Consume newline character
+
+        switch (choice)
+        {
+        case 1:
+            printf("Enter Reply Content: ");
+            fgets(content, MAX_CONTENT, stdin);
+            content[strcspn(content, "\n")] = 0; // Remove newline character
+            addReply(reply, username, displayName, content);
+            break;
+        case 2:
+            likePost(reply);
+            break;
+        case 3:
+            return;
+        default:
+            printf("Invalid choice! Please try again.\n");
+        }
+    }
+}
+
 void handleUserDashboard(char *username, char *displayName)
 {
     int choice;
     char content[MAX_CONTENT];
     TreeNode *currentPost = posts;
     printf("Welcome, %s!\n", displayName);
-    Sleep(1000);
+    Sleep(1500);
     displayTimeline(currentPost);
 
     while (1)
@@ -448,43 +487,6 @@ void handleUserDashboard(char *username, char *displayName)
     }
 }
 
-void handleReplyDashboard(TreeNode *reply, char *username, char *displayName)
-{
-    int choice;
-    char content[MAX_CONTENT];
-
-    while (1)
-    {
-        system("cls");
-        printf("\n=== Reply ===\n");
-        printf("%s\n", reply->username);
-        printf("%s\n", reply->content);
-        printf("<3 %d\n", reply->likes);
-        printf("\n1. Add Nested Reply\n");
-        printf("2. Like Reply\n");
-        printf("3. Back to Post\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-        getchar(); // Consume newline character
-
-        switch (choice)
-        {
-        case 1:
-            printf("Enter Reply Content: ");
-            fgets(content, MAX_CONTENT, stdin);
-            content[strcspn(content, "\n")] = 0; // Remove newline character
-            addReply(reply, username, displayName, content);
-            break;
-        case 2:
-            likePost(reply);
-            break;
-        case 3:
-            return;
-        default:
-            printf("Invalid choice! Please try again.\n");
-        }
-    }
-}
 
 int main()
 {
