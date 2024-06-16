@@ -1,14 +1,3 @@
-/* Todo
-    - Implement queue in timeline (how? maybe just use linked list and add a pointer to the last node)
-    - add user profile (how? maybe just add a struct for user profile and add it to the linked list)
-    - add post feature
-
-    optional:
-    - add repost feature (how? maybe just copy the post and add it as new post)
-    - limit likes per post so that user can only like once (how? maybe just add a boolean field to the post)
-
-*/
-
 #include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,9 +22,11 @@ typedef struct TreeNode
     char displayName[MAX_LENGTH];
     char content[MAX_CONTENT];
     int likes;
+    int reposts;
     struct TreeNode *next;
     struct TreeNode *child;
 } TreeNode;
+
 
 UserProfile *users = NULL;
 TreeNode *posts = NULL;
@@ -66,10 +57,12 @@ TreeNode *createPostNode(char *username, char *displayName, char *content)
     strcpy(newNode->displayName, displayName);
     strcpy(newNode->content, content);
     newNode->likes = 0;
+    newNode->reposts = 0;
     newNode->next = NULL;
     newNode->child = NULL;
     return newNode;
 }
+
 
 void addUser(char *username, char *password, char *displayName)
 {
@@ -172,11 +165,11 @@ void savePosts()
     TreeNode *temp = posts;
     while (temp)
     {
-        fprintf(file, "P|%s|%s|%s|%d\n", temp->username, temp->displayName, temp->content, temp->likes);
+        fprintf(file, "P|%s|%s|%s|%d|%d\n", temp->username, temp->displayName, temp->content, temp->likes, temp->reposts); // Add reposts
         TreeNode *reply = temp->child;
         while (reply)
         {
-            fprintf(file, "R|%s|%s|%s|%d\n", reply->username, reply->displayName, reply->content, reply->likes);
+            fprintf(file, "R|%s|%s|%s|%d|%d\n", reply->username, reply->displayName, reply->content, reply->likes, reply->reposts); // Add reposts
             reply = reply->next;
         }
         temp = temp->next;
@@ -195,15 +188,16 @@ void loadPosts()
     }
 
     char type, username[MAX_LENGTH], displayName[MAX_LENGTH], content[MAX_CONTENT];
-    int likes;
+    int likes, reposts; // Add reposts
     TreeNode *currentPost = NULL;
 
-    while (fscanf(file, "%c|%[^|]|%[^|]|%[^|]|%d\n", &type, username, displayName, content, &likes) != EOF)
+    while (fscanf(file, "%c|%[^|]|%[^|]|%[^|]|%d|%d\n", &type, username, displayName, content, &likes, &reposts) != EOF) // Add reposts
     {
         if (type == 'P')
         {
             TreeNode *newPost = createPostNode(username, displayName, content);
             newPost->likes = likes;
+            newPost->reposts = reposts; // Add reposts
             newPost->next = posts;
             posts = newPost;
             currentPost = newPost;
@@ -212,6 +206,7 @@ void loadPosts()
         {
             TreeNode *newReply = createPostNode(username, displayName, content);
             newReply->likes = likes;
+            newReply->reposts = reposts; // Add reposts
             if (!currentPost->child)
             {
                 currentPost->child = newReply;
@@ -230,6 +225,7 @@ void loadPosts()
 
     fclose(file);
 }
+
 
 void addReply(TreeNode *post, char *username, char *displayName, char *content)
 {
@@ -259,58 +255,46 @@ void likePost(TreeNode *post)
 
 TreeNode *repost(TreeNode *originalPost, char *username, char *displayName)
 {
+    originalPost->reposts++; // Increment repost count of the original post
     char repostContent[MAX_CONTENT + MAX_LENGTH];
-    snprintf(repostContent, sizeof(repostContent), "Reposted by %s\n%s\n%s\n<3 %d", displayName, originalPost->username, originalPost->content, originalPost->likes);
+    snprintf(repostContent, sizeof(repostContent), "Reposted by %s\n%s\n%s\n<3 %d\nReposts: %d", displayName, originalPost->username, originalPost->content, originalPost->likes, originalPost->reposts);
     TreeNode *repostNode = addPost(username, displayName, repostContent);
+    repostNode->reposts = originalPost->reposts; // Sync the repost count
     return repostNode;
 }
 
-void displayPosts(TreeNode *post, int level) {
-    while (post) {
+
+void displayPosts(TreeNode *post, int level)
+{
+    while (post)
+    {
         for (int i = 0; i < level; ++i)
             printf("  ");
-        if (strstr(post->content, "Reposted by") == post->content) {
+        if (strstr(post->content, "Reposted by") == post->content)
+        {
             printf("%s\n", post->content); // Display the repost content directly
-        } else {
+        }
+        else
+        {
             printf("%s\n", post->username);
             for (int i = 0; i < level; ++i)
                 printf("  ");
             printf("%s\n", post->content);
             for (int i = 0; i < level; ++i)
                 printf("  ");
-            printf("<3 %d\n", post->likes);
+            printf("<3 %d | Reposts %d\n", post->likes, post->reposts); // Display repost count
         }
         printf("\n");
 
-        // Display replies in the specified format
-        if (post->child) {
-            TreeNode *reply = post->child;
-            int replyIndex = 1;
-            while (reply) {
-                for (int i = 0; i < level + 1; ++i)
-                    printf("  ");
-                printf("[%d] ------> %s\n", replyIndex, reply->username);
-                for (int i = 0; i < level + 1; ++i)
-                    printf("  ");
-                printf("------- %s\n", reply->content);
-                for (int i = 0; i < level + 1; ++i)
-                    printf("  ");
-                printf("------- <3 %d\n", reply->likes);
-                printf("\n");
-
-                // If the reply has its own replies, display them
-                if (reply->child) {
-                    displayPosts(reply->child, level + 2);
-                }
-
-                reply = reply->next;
-                replyIndex++;
-            }
+        if (post->child)
+        {
+            displayPosts(post->child, level + 1);
         }
 
         post = post->next;
     }
 }
+
 
 void displayTimeline(TreeNode *currentPost)
 {
@@ -319,15 +303,19 @@ void displayTimeline(TreeNode *currentPost)
     displayPosts(currentPost, 0);
 }
 
-void displayUserPosts(char *username) {
+void displayUserPosts(char *username)
+{
     system("cls");
     TreeNode *currentPost = posts;
     printf("=== %s's Posts ===\n", username);
 
-    while (currentPost) {
-        if (strcmp(currentPost->username, username) == 0) {
+    while (currentPost)
+    {
+        if (strcmp(currentPost->username, username) == 0)
+        {
             printf("%s\n", currentPost->content);
-            if (strstr(currentPost->content, "Reposted by") != currentPost->content) {
+            if (strstr(currentPost->content, "Reposted by") != currentPost->content)
+            {
                 printf("<3 %d\n", currentPost->likes);
             }
             printf("\n");
@@ -341,8 +329,8 @@ void displayUserPosts(char *username) {
     displayTimeline(posts);
 }
 
-
-void handleUserDashboard(char *username, char *displayName) {
+void handleUserDashboard(char *username, char *displayName)
+{
     int choice;
     char content[MAX_CONTENT];
     TreeNode *currentPost = posts;
@@ -350,20 +338,22 @@ void handleUserDashboard(char *username, char *displayName) {
     Sleep(1000);
     displayTimeline(currentPost);
 
-    while (1) {
+    while (1)
+    {
         printf("1. Add New Post\n");
         printf("2. Reply to Post\n");
         printf("3. Like Post\n");
         printf("4. Next Post\n");
-        printf("5. View My Posts\n");
+        printf("5. Step into Post\n");
         printf("6. Repost\n");
-        printf("7. Step into Post\n");
+        printf("7. View My Posts\n");
         printf("8. Logout\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         getchar(); // Consume newline character
 
-        switch (choice) {
+        switch (choice)
+        {
         case 1:
             printf("Enter Post Content: ");
             fgets(content, MAX_CONTENT, stdin);
@@ -371,44 +361,44 @@ void handleUserDashboard(char *username, char *displayName) {
             currentPost = addPost(username, displayName, content);
             break;
         case 2:
-            if (currentPost) {
+            if (currentPost)
+            {
                 printf("Enter Reply Content: ");
                 fgets(content, MAX_CONTENT, stdin);
                 content[strcspn(content, "\n")] = 0; // Remove newline character
                 addReply(currentPost, username, displayName, content);
                 displayTimeline(currentPost);
-            } else {
+            }
+            else
+            {
                 printf("No post to reply to!\n");
             }
             break;
         case 3:
-            if (currentPost) {
+            if (currentPost)
+            {
                 likePost(currentPost);
                 displayTimeline(currentPost);
-            } else {
+            }
+            else
+            {
                 printf("No post to like!\n");
             }
             break;
         case 4:
-            if (currentPost) {
+            if (currentPost)
+            {
                 currentPost = currentPost->next;
                 displayTimeline(currentPost);
-            } else {
+            }
+            else
+            {
                 printf("No more posts!\n");
             }
             break;
         case 5:
-            displayUserPosts(username);
-            break;
-        case 6:
-            if (currentPost) {
-                currentPost = repost(currentPost, username, displayName);
-            } else {
-                printf("No post to repost!\n");
-            }
-            break;
-        case 7:
-            if (currentPost) {
+            if (currentPost)
+            {
                 int replyIndex;
                 printf("Enter reply index to step into: ");
                 scanf("%d", &replyIndex);
@@ -416,20 +406,39 @@ void handleUserDashboard(char *username, char *displayName) {
 
                 TreeNode *selectedReply = currentPost->child;
                 int currentIndex = 1;
-                while (selectedReply && currentIndex < replyIndex) {
+                while (selectedReply && currentIndex < replyIndex)
+                {
                     selectedReply = selectedReply->next;
                     currentIndex++;
                 }
 
-                if (selectedReply) {
+                if (selectedReply)
+                {
                     handleReplyDashboard(selectedReply, username, displayName);
                     displayTimeline(posts); // Refresh timeline after returning from reply dashboard
-                } else {
+                }
+                else
+                {
                     printf("Invalid reply index!\n");
                 }
-            } else {
+            }
+            else
+            {
                 printf("No post to step into!\n");
             }
+            break;
+        case 6:
+            if (currentPost)
+            {
+                currentPost = repost(currentPost, username, displayName);
+            }
+            else
+            {
+                printf("No post to repost!\n");
+            }
+            break;
+        case 7:
+            displayUserPosts(username);
             break;
         case 8:
             return;
@@ -439,11 +448,14 @@ void handleUserDashboard(char *username, char *displayName) {
     }
 }
 
-void handleReplyDashboard(TreeNode *reply, char *username, char *displayName) {
+void handleReplyDashboard(TreeNode *reply, char *username, char *displayName)
+{
     int choice;
     char content[MAX_CONTENT];
 
-    while (1) {
+    while (1)
+    {
+        system("cls");
         printf("\n=== Reply ===\n");
         printf("%s\n", reply->username);
         printf("%s\n", reply->content);
@@ -455,7 +467,8 @@ void handleReplyDashboard(TreeNode *reply, char *username, char *displayName) {
         scanf("%d", &choice);
         getchar(); // Consume newline character
 
-        switch (choice) {
+        switch (choice)
+        {
         case 1:
             printf("Enter Reply Content: ");
             fgets(content, MAX_CONTENT, stdin);
@@ -473,7 +486,6 @@ void handleReplyDashboard(TreeNode *reply, char *username, char *displayName) {
     }
 }
 
-
 int main()
 {
     int choice;
@@ -481,7 +493,7 @@ int main()
     char password[MAX_LENGTH];
     char displayName[MAX_LENGTH];
     char content[MAX_CONTENT];
-    UserProfile* loggedIn = NULL;
+    UserProfile *loggedIn = NULL;
 
     loadUsers();
     loadPosts();
