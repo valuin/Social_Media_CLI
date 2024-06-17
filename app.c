@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <windows.h>
 
 #define MAX_LENGTH 255
@@ -142,13 +141,6 @@ TreeNode *addPost(char *username, char *displayName, char *content)
     savePosts();
     displayTimeline(posts);
     return newPost;
-}
-
-void addPostWithoutSaving(char *username, char *displayName, char *content)
-{
-    TreeNode *newPost = createPostNode(username, displayName, content);
-    newPost->next = posts;
-    posts = newPost;
 }
 
 void savePosts()
@@ -363,7 +355,8 @@ void displayUserPosts(char *username)
             printf("%s\n", currentPost->content);
             if (strstr(currentPost->content, "Reposted by") != currentPost->content)
             {
-                printf("<3 %d\n", currentPost->likes);
+                printf("<3 %d | ", currentPost->likes);
+                printf("Reposts %d\n", currentPost->reposts); // Display the repost count
             }
             printf("\n");
         }
